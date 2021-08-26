@@ -13,7 +13,11 @@ export default class SelfIntroduction extends React.Component {
 
 
     render() {
-       
+        return (
+            <React.Fragment>
+                <h1>Social Media Linked</h1>
+            </React.Fragment>
+        )
     }
 }
 

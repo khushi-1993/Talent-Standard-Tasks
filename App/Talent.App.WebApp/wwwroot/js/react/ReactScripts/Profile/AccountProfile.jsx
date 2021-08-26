@@ -12,6 +12,7 @@ import VisaStatus from './VisaStatus.jsx'
 import PhotoUpload from './PhotoUpload.jsx';
 import VideoUpload from './VideoUpload.jsx';
 import CVUpload from './CVUpload.jsx';
+import { Description } from './Description.jsx';
 import SelfIntroduction from './SelfIntroduction.jsx';
 import Experience from './Experience.jsx';
 import { BodyWrapper, loaderData } from '../Layout/BodyWrapper.jsx';
@@ -24,6 +25,8 @@ export default class AccountProfile extends React.Component {
 
         this.state = {
             profileData: {
+                description:'',
+                summary:'',
                 address: {},
                 nationality: '',
                 education: [],
@@ -75,8 +78,14 @@ export default class AccountProfile extends React.Component {
                 'Content-Type': 'application/json'
             },
             type: "GET",
+            contentType: "application/json",
+            dataType: "json",
             success: function (res) {
-                this.updateWithoutSave(res.data)
+                let profileData = null;
+                if (res.data) {
+                    profileData = res.data
+                }
+                this.updateWithoutSave(profileData)
             }.bind(this)
         })
         this.init()
@@ -98,7 +107,9 @@ export default class AccountProfile extends React.Component {
     }
 
     updateForComponentId(componentId, newValues) {
-        this.updateAndSaveData(newValues)
+        let data ={};
+        data[componentId] = newValues;
+        this.updateAndSaveData(data)
     }
 
     saveProfile() {
@@ -151,6 +162,19 @@ export default class AccountProfile extends React.Component {
                                                 linkedAccounts={this.state.profileData.linkedAccounts}
                                                 updateProfileData={this.updateWithoutSave}
                                                 saveProfileData={this.updateAndSaveData}
+                                                controlFunc={this.updateForComponentId}
+                                                componentId='linkedAccounts'
+                                            />
+                                        </FormItemWrapper>
+                                        <FormItemWrapper
+                                            title='Description'
+                                        >
+                                            <Description
+                                                summary={this.state.profileData.summary}
+                                                description={this.state.profileData.description}
+                                                controlFunc={this.updateForComponentId}
+                                                summaryId='summary'
+                                                descriptionId='description'
                                             />
                                         </FormItemWrapper>
                                         <FormItemWrapper

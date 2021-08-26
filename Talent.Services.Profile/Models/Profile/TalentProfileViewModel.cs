@@ -6,6 +6,7 @@ using Talent.Common.Models;
 
 namespace Talent.Services.Profile.Models.Profile
 {
+    
     public class TalentProfileViewModel
     {
         public string Id { get; set; }

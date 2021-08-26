@@ -32,6 +32,7 @@ namespace Talent.Services.Profile.Controllers
         private readonly IFileService _documentService;
         private readonly IUserAppContext _userAppContext;
         private readonly IRepository<User> _userRepository;
+        private readonly IRepository<Common.Models.Talent> _talentRepository;
         private readonly IRepository<UserLanguage> _userLanguageRepository;
         private readonly IRepository<UserDescription> _personDescriptionRespository;
         private readonly IRepository<UserAvailability> _userAvailabilityRepository;
@@ -58,6 +59,7 @@ namespace Talent.Services.Profile.Controllers
             IRepository<UserCertification> userCertificationRepository,
             IRepository<UserLocation> userLocationRepository,
             IRepository<Employer> employerRepository,
+            IRepository<Common.Models.Talent> talentRepository,
             IRepository<UserDocument> userDocumentRepository,
             IRepository<Recruiter> recruiterRepository,
             IHostingEnvironment environment,
@@ -79,6 +81,7 @@ namespace Talent.Services.Profile.Controllers
             _employerRepository = employerRepository;
             _userDocumentRepository = userDocumentRepository;
             _recruiterRepository = recruiterRepository;
+            _talentRepository = talentRepository;
             _environment = environment;
             _profileImageFolder = "images\\";
             _awsService = awsService;
@@ -91,7 +94,7 @@ namespace Talent.Services.Profile.Controllers
         public async Task<IActionResult> GetProfile()
         {
             var userId = _userAppContext.CurrentUserId;
-            var user = await _userRepository.GetByIdAsync(userId);
+            var user = await _talentRepository.GetByIdAsync(userId);
             return Json(new { Username = user.FirstName });
         }
 
@@ -100,7 +103,7 @@ namespace Talent.Services.Profile.Controllers
         public async Task<IActionResult> GetProfileById(string uid)
         {
             var userId = uid;
-            var user = await _userRepository.GetByIdAsync(userId);
+            var user = await _talentRepository.GetByIdAsync(userId);
             return Json(new { userName = user.FirstName, createdOn = user.CreatedOn });
         }
 
@@ -114,7 +117,7 @@ namespace Talent.Services.Profile.Controllers
             }
             else
             {
-                var person = await _userRepository.GetByIdAsync(_userAppContext.CurrentUserId);
+                var person = await _talentRepository.GetByIdAsync(_userAppContext.CurrentUserId);
                 if (person != null)
                 {
                     return Json(new { IsAuthenticated = true, Username = person.FirstName, Type = "talent" });

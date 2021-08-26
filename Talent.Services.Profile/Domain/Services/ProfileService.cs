@@ -23,6 +23,7 @@ namespace Talent.Services.Profile.Domain.Services
         IRepository<Employer> _employerRepository;
         IRepository<Job> _jobRepository;
         IRepository<Recruiter> _recruiterRepository;
+        IRepository<Common.Models.Talent> _talentRepository;
         IFileService _fileService;
 
 
@@ -32,6 +33,7 @@ namespace Talent.Services.Profile.Domain.Services
                               IRepository<Employer> employerRepository,
                               IRepository<Job> jobRepository,
                               IRepository<Recruiter> recruiterRepository,
+                              IRepository<Common.Models.Talent> talentRepository,
                               IFileService fileService)
         {
             _userAppContext = userAppContext;
@@ -40,6 +42,7 @@ namespace Talent.Services.Profile.Domain.Services
             _employerRepository = employerRepository;
             _jobRepository = jobRepository;
             _recruiterRepository = recruiterRepository;
+            _talentRepository = talentRepository;
             _fileService = fileService;
         }
 
@@ -51,14 +54,117 @@ namespace Talent.Services.Profile.Domain.Services
 
         public async Task<TalentProfileViewModel> GetTalentProfile(string Id)
         {
-            //Your code here;
+            Common.Models.Talent profile = null;
+            profile = (await _talentRepository.GetByIdAsync(Id));
+
+            var videoUrl = "";
+            var cvUrl = "";
+
+            if (profile != null)
+            {
+                videoUrl = string.IsNullOrWhiteSpace(profile.VideoName)
+                          ? ""
+                          : await _fileService.GetFileURL(profile.VideoName, FileType.UserVideo);
+
+                cvUrl = string.IsNullOrWhiteSpace(profile.CvName)
+                        ? ""
+                        : await _fileService.GetFileURL(profile.CvName, FileType.UserCV);
+
+                var skills = profile.Skills == null ? null :  profile.Skills.Select(x => ViewModelFromSkill(x)).ToList();
+
+                // var education = profile.Education.Select(x => AddEducationViewModel(x)).ToList();
+
+                // var certifications = profile.Education.Select(x => AddCertificationViewModel(x)).ToList();
+
+                //var experience = profile.Education.Select(x => ExperienceViewModel(x)).ToList();
+
+                var result = new TalentProfileViewModel
+                {
+                    Id = profile.Id,
+                    FirstName = profile.FirstName,
+                    MiddleName = profile.MiddleName,
+                    LastName = profile.LastName,
+                    Gender = profile.Gender,
+                    Email = profile.Email,
+                    Phone = profile.Phone,
+                    MobilePhone = profile.MobilePhone,
+                    IsMobilePhoneVerified = profile.IsMobilePhoneVerified,
+                    Address = profile.Address,
+                    Nationality = profile.Nationality,
+                    VisaStatus = profile.VisaStatus,
+                    VisaExpiryDate = profile.VisaExpiryDate,
+                    ProfilePhoto = profile.ProfilePhoto,
+                    ProfilePhotoUrl = profile.ProfilePhotoUrl,
+                    VideoName = profile.VideoName,
+                    VideoUrl = videoUrl,
+                    CvName = profile.CvName,
+                    CvUrl = cvUrl,
+                    Summary = profile.Summary,
+                    Description = profile.Description,
+                    LinkedAccounts = profile.LinkedAccounts,
+                    JobSeekingStatus = profile.JobSeekingStatus,
+                    Languages = null,
+                    Skills = skills,
+                    Education = null,
+                    Certifications = null,
+                    Experience = null
+                };
+                return result;
+            }
+
+            return null;
+        }
+
+        private object AddEducationViewModel(object x)
+        {
             throw new NotImplementedException();
         }
 
         public async Task<bool> UpdateTalentProfile(TalentProfileViewModel model, string updaterId)
         {
-            //Your code here;
-            throw new NotImplementedException();
+            try
+            {
+                if (model.Id != null)
+                {
+                    Common.Models.Talent existingTalent = (await _talentRepository.GetByIdAsync(model.Id));
+                    existingTalent.LinkedAccounts = model.LinkedAccounts;
+                    existingTalent.Summary = model.Summary;
+                    existingTalent.Description = model.Description;
+                    //existingEmployer.CompanyContact = employer.CompanyContact;
+                    //existingEmployer.PrimaryContact = employer.PrimaryContact;
+                    //existingEmployer.ProfilePhoto = employer.ProfilePhoto;
+                    //existingEmployer.ProfilePhotoUrl = employer.ProfilePhotoUrl;
+                    //existingEmployer.DisplayProfile = employer.DisplayProfile;
+                    //existingEmployer.UpdatedBy = updaterId;
+                    //existingEmployer.UpdatedOn = DateTime.Now;
+
+                    //var newSkills = new List<UserSkill>();
+                    //foreach (var item in employer.Skills)
+                    //{
+                    //    var skill = existingEmployer.Skills.SingleOrDefault(x => x.Id == item.Id);
+                    //    if (skill == null)
+                    //    {
+                    //        skill = new UserSkill
+                    //        {
+                    //            Id = ObjectId.GenerateNewId().ToString(),
+                    //            IsDeleted = false
+                    //        };
+                    //    }
+                    //    UpdateSkillFromView(item, skill);
+                    //    newSkills.Add(skill);
+                    //}
+                    //existingEmployer.Skills = newSkills;
+
+                    await _talentRepository.Update(existingTalent);
+
+                    return true;
+                }
+                return false;
+            }
+            catch (MongoException e)
+            {
+                return false;
+            }
         }
 
         public async Task<EmployerProfileViewModel> GetEmployerProfile(string Id, string role)
@@ -350,7 +456,7 @@ namespace Talent.Services.Profile.Domain.Services
             //Your code here;
             throw new NotImplementedException();
         }
-         
+
         public async Task<int> GetTotalTalentsForClient(string clientId, string recruiterId)
         {
             //Your code here;

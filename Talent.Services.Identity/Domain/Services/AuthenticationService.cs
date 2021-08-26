@@ -25,6 +25,7 @@ namespace Talent.Services.Identity.Domain.Services
         private IRepository<Employer> _employerRepository;
         private IRepository<Login> _loginRepository;
         private IRepository<Recruiter> _recruitorRepository;
+        private IRepository<Common.Models.Talent> _talentRepository;
         private IPasswordStorage _encryptPassword;
         private IJwtHandler _jwtHandler;
 
@@ -35,6 +36,7 @@ namespace Talent.Services.Identity.Domain.Services
                                 IRepository<Employer> employerRepository,
                                 IRepository<Login> loginRepository,
                                 IRepository<Recruiter> recruitorRepository,
+                                IRepository<Common.Models.Talent> talentRepository,
                                 IPasswordStorage encryptPassword,
                                 IJwtHandler jwtHandler)
         {
@@ -42,6 +44,7 @@ namespace Talent.Services.Identity.Domain.Services
             _employerRepository = employerRepository;
             _loginRepository = loginRepository;
             _recruitorRepository = recruitorRepository;
+            _talentRepository = talentRepository;
             _encryptPassword = encryptPassword;
             _jwtHandler = jwtHandler;
    
@@ -110,6 +113,23 @@ namespace Talent.Services.Identity.Domain.Services
                     await _employerRepository.Add(newEmployer);
                     return _jwtHandler.Create(newEmployer.Id, user.UserRole, true);
                 }
+                else if (user.UserRole == "talent")
+                {
+                    var newTalent = new Common.Models.Talent()
+                    {
+                        Id = objectId,
+                        CreatedOn = DateTime.UtcNow,
+                        IsDeleted = false,
+                        UId = UId,
+                        Login = login,
+                    };
+                    newTalent.Email = user.Email;
+                    newTalent.FirstName = user.FirstName;
+                    newTalent.LastName = user.LastName;
+
+                    await _talentRepository.Add(newTalent);
+                    return _jwtHandler.Create(newTalent.Id, user.UserRole, true);
+                }
                 else
                 {
                     var newTalent = new User()
@@ -141,7 +161,7 @@ namespace Talent.Services.Identity.Domain.Services
         /// <returns></returns>
         public async Task<bool> VerifyPassword(string email, string password)
         {
-            var talent = (await _userRepository.Get(x => x.Login.Username == email)).FirstOrDefault();
+            var talent = (await _talentRepository.Get(x => x.Login.Username == email)).FirstOrDefault();
             if (talent != null)
             {
                 return await VerifyPassword(talent.Login, password);
@@ -181,7 +201,7 @@ namespace Talent.Services.Identity.Domain.Services
 
         public async Task<JsonWebToken> LoginAsync(string email, string password)
         {
-            var talentUser = (await _userRepository.Get(x => x.Login.Username == email)).FirstOrDefault();
+            var talentUser = (await _talentRepository.Get(x => x.Login.Username == email)).FirstOrDefault();
 
             string userRole = "talent";
             var login = new Login();
@@ -195,7 +215,7 @@ namespace Talent.Services.Identity.Domain.Services
                 if (talentUser.IsDeleted)
                 {
                     talentUser.IsDeleted = false;
-                    await _userRepository.Update(talentUser);
+                    await _talentRepository.Update(talentUser);
                 }
             }
             else if (talentUser == null)
@@ -251,7 +271,7 @@ namespace Talent.Services.Identity.Domain.Services
             switch (userRole.ToLower())
             {
                 case "talent":
-                    var existingTalent = (await _userRepository.Get(x => x.Login.Username == email)).FirstOrDefault();
+                    var existingTalent = (await _talentRepository.Get(x => x.Login.Username == email)).FirstOrDefault();
                     isVerified = existingTalent.Login.EmailAddressAuthorized;
                     return isVerified;
                 case "recruiter":
@@ -272,7 +292,7 @@ namespace Talent.Services.Identity.Domain.Services
         
         public async Task<bool> UniqueEmail(string email)
         {
-            var existingTalent = (await _userRepository.Get(x => x.Login.Username == email)).FirstOrDefault();
+            var existingTalent = (await _talentRepository.Get(x => x.Login.Username == email)).FirstOrDefault();
             var existingEmployer = (await _employerRepository.Get(x => x.Login.Username == email)).FirstOrDefault();
             var existingRecruiter = (await _recruitorRepository.Get(x => x.Login.Username == email)).FirstOrDefault();
 
@@ -285,7 +305,7 @@ namespace Talent.Services.Identity.Domain.Services
         }
         public async Task<UserRole> DetermineUserRole(string email)
         {
-            var talentUser = (await _userRepository.Get(x => x.Login.Username == email)).FirstOrDefault();
+            var talentUser = (await _talentRepository.Get(x => x.Login.Username == email)).FirstOrDefault();
             var employerUser = new Employer();
             var recruiterUser = new Recruiter();
 
@@ -340,7 +360,7 @@ namespace Talent.Services.Identity.Domain.Services
                 bool isTokenValid;
                 if (userRole == UserRole.Talent)
                 {
-                    var user = _userRepository.GetQueryable()
+                    var user = _talentRepository.GetQueryable()
                         .Where(x => x.Login.ResetPasswordToken.Equals(token)
                         && x.Login.Username.ToLowerInvariant() == email.ToLowerInvariant()
                         && x.Login.ResetPasswordTokenExpiryDate >= DateTime.Today
@@ -388,7 +408,7 @@ namespace Talent.Services.Identity.Domain.Services
 
             if (userRole == "talent")
             {
-                var user = (await _userRepository.Get(x => x.Id == userId)).FirstOrDefault();
+                var user = (await _talentRepository.Get(x => x.Id == userId)).FirstOrDefault();
                 if (user == null)
                 {
                     throw new ApplicationException("User not found");
@@ -426,14 +446,14 @@ namespace Talent.Services.Identity.Domain.Services
         {
             if (userRole == "talent")
             {
-                var user = (await _userRepository.Get(x => x.Id == userId)).FirstOrDefault();
+                var user = (await _talentRepository.Get(x => x.Id == userId)).FirstOrDefault();
                 if (user == null)
                 {
                     throw new ApplicationException("User not found");
                 }
                 user.FirstName = userName.Split(',')[0];
                 user.LastName = userName.Split(',')[1];
-                await _userRepository.Update(user);
+                await _talentRepository.Update(user);
                 return user.FirstName + "," + user.LastName;
             }
             else if (userRole == "employer")
@@ -471,7 +491,7 @@ namespace Talent.Services.Identity.Domain.Services
             if (!(model.NewPassword == model.ConfirmPassword)) return (new ChangePasswordResult() { Success = false, Message = "New password and confirm password don't match" });
             if (userRole == "talent")
             {
-                var user = (await _userRepository.Get(x => x.Id == userId)).FirstOrDefault();
+                var user = (await _talentRepository.Get(x => x.Id == userId)).FirstOrDefault();
                 if (user == null)
                 {
                     throw new ApplicationException("User not found");
@@ -483,7 +503,7 @@ namespace Talent.Services.Identity.Domain.Services
                 }
                 var passHash = _encryptPassword.CreateHash(model.NewPassword);
                 user.Login.PasswordHash = passHash;
-                await _userRepository.Update(user);
+                await _talentRepository.Update(user);
                 return (new ChangePasswordResult() { Success = true, Message = "Successfully changed password" });
             }
             else if (userRole == "employer")
@@ -529,9 +549,9 @@ namespace Talent.Services.Identity.Domain.Services
         {
             if (userRole == "talent")
             {
-                var user = (await _userRepository.Get(x => x.Id == userId)).FirstOrDefault();
+                var user = (await _talentRepository.Get(x => x.Id == userId)).FirstOrDefault();
                 user.IsDeleted = true;
-                await _userRepository.Update(user);
+                await _talentRepository.Update(user);
             }
             else if (userRole == "employer")
             {

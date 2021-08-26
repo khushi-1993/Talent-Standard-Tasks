@@ -5,37 +5,49 @@ export class Description extends React.Component {
 
     constructor(props) {
         super(props);
+
+        const summary = props.summary !== null ? props.summary : "";
+        const description = props.summary !== null ? props.summary : "";
+           
+
         this.state = {
-            characters: 0
-        };
-        this.update = this.update.bind(this);
+            summary : summary,
+            description: description
+        }
+       
+
+        this.handleChange = this.handleChange.bind(this);
+        this.saveDescription = this.saveDescription.bind(this);
     };
 
-    update(event) {
-        let data = {};
-        data[event.target.name] = event.target.value;
-        this.props.updateStateData(data);
-        let description = event.target.value;
+    handleChange(event) {
         this.setState({
-            characters: description.length
+            [event.target.name] : event.target.value
         })
+    }
+
+    saveDescription()
+    {
+        this.props.controlFunc(this.props.summaryId, this.state.summary);
+        this.props.controlFunc(this.props.descriptionId, thsi.state.description);
     }
 
     render() {
         const characterLimit = 600;
-        let characters = this.props.description ? this.props.description.length : 0;
+        const minCharacterLimit = 150;
         
         return (
             <React.Fragment>
-                <div className="four wide column">
-                    <h3>Description</h3>
-                    <div className="tooltip">Write a description of your company.</div>
-                </div>
-                <div className="ten wide column">
-                    <div className="field" >
-                        <textarea maxLength={characterLimit} name="Description" placeholder="Please tell us about any hobbies, additional expertise, or anything else you’d like to add." value={this.props.description} onChange={this.update} ></textarea>
+                <div className="sixteen wide column">
+                <div className="field" >
+                        <input type="text" maxLength={minCharacterLimit} name="summary" placeholder="Please provide a sort summary about yourself" value={this.state.summary} onChange={this.handleChange} />
                     </div>
-                    <p>Characters remaining : {characters} / {characterLimit}</p>
+                    <p>Summary must be no more than 150 characters.</p>
+                    <div className="field" >
+                        <textarea  maxLength={characterLimit} name="description" placeholder="Please tell us about any hobbies, additional expertise, or anything else you’d like to add." value={this.state.description}  onChange={this.handleChange}></textarea>
+                    </div>
+                    <p>Description must be between 150-600 characters.</p>
+                    <button type="button" className="ui right floated teal button" disabled onClick={this.saveDescription}>Save</button>
                 </div>
             </React.Fragment>
         )
