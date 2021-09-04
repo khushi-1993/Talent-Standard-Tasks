@@ -12,7 +12,7 @@ export default class TalentCard extends React.Component {
     
     
     render() {
-       
+       return<div></div>
     }
 }
 

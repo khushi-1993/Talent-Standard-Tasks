@@ -50,7 +50,7 @@ namespace Talent.Common.Models
         public string UpdatedBy { get; set; }
         public bool IsDeleted { get; set; }
         public Login Login { get; set; }
-
+        public string UserType { get; set; }
         public User()
         {
             Languages = new List<UserLanguage>();
@@ -70,17 +70,14 @@ namespace Talent.Common.Models
         public string Street { get; set; }
         public string Suburb { get; set; }
         public int PostCode { get; set; }
-        public string City { get; set; }
-        public string Country { get; set; }
-
+        public Location Location { get; set; }
         public Address()
         {
             Number = "";
             Street = "";
             Suburb = "";
             PostCode = 0;
-            City = "";
-            Country = "";
+            Location = new Location();
         }
     }
 

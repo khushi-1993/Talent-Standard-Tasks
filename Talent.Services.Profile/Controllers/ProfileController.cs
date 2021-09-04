@@ -32,7 +32,6 @@ namespace Talent.Services.Profile.Controllers
         private readonly IFileService _documentService;
         private readonly IUserAppContext _userAppContext;
         private readonly IRepository<User> _userRepository;
-        private readonly IRepository<Common.Models.Talent> _talentRepository;
         private readonly IRepository<UserLanguage> _userLanguageRepository;
         private readonly IRepository<UserDescription> _personDescriptionRespository;
         private readonly IRepository<UserAvailability> _userAvailabilityRepository;
@@ -59,7 +58,6 @@ namespace Talent.Services.Profile.Controllers
             IRepository<UserCertification> userCertificationRepository,
             IRepository<UserLocation> userLocationRepository,
             IRepository<Employer> employerRepository,
-            IRepository<Common.Models.Talent> talentRepository,
             IRepository<UserDocument> userDocumentRepository,
             IRepository<Recruiter> recruiterRepository,
             IHostingEnvironment environment,
@@ -81,7 +79,6 @@ namespace Talent.Services.Profile.Controllers
             _employerRepository = employerRepository;
             _userDocumentRepository = userDocumentRepository;
             _recruiterRepository = recruiterRepository;
-            _talentRepository = talentRepository;
             _environment = environment;
             _profileImageFolder = "images\\";
             _awsService = awsService;
@@ -94,7 +91,7 @@ namespace Talent.Services.Profile.Controllers
         public async Task<IActionResult> GetProfile()
         {
             var userId = _userAppContext.CurrentUserId;
-            var user = await _talentRepository.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
             return Json(new { Username = user.FirstName });
         }
 
@@ -103,7 +100,7 @@ namespace Talent.Services.Profile.Controllers
         public async Task<IActionResult> GetProfileById(string uid)
         {
             var userId = uid;
-            var user = await _talentRepository.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
             return Json(new { userName = user.FirstName, createdOn = user.CreatedOn });
         }
 
@@ -117,7 +114,7 @@ namespace Talent.Services.Profile.Controllers
             }
             else
             {
-                var person = await _talentRepository.GetByIdAsync(_userAppContext.CurrentUserId);
+                var person = await _userRepository.GetByIdAsync(_userAppContext.CurrentUserId);
                 if (person != null)
                 {
                     return Json(new { IsAuthenticated = true, Username = person.FirstName, Type = "talent" });
@@ -245,8 +242,17 @@ namespace Talent.Services.Profile.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "talent")]
         public async Task<ActionResult> UpdateProfilePhoto()
         {
-            //Your code here;
-            throw new NotImplementedException();
+            IFormFile file = Request.Form.Files[0];
+            var userId = _userAppContext.CurrentUserId;
+
+
+            if (file != null)
+            {
+                var talentResult = await _profileService.UpdateTalentPhoto(userId, file);
+                return Json(new { Success = true, talent = talentResult });
+            }
+
+            return Json(new { Success = false });
         }
 
         [HttpPost("updateTalentCV")]

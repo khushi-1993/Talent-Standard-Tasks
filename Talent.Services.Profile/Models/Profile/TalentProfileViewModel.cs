@@ -10,14 +10,9 @@ namespace Talent.Services.Profile.Models.Profile
     public class TalentProfileViewModel
     {
         public string Id { get; set; }
-        public string FirstName { get; set; }
-        public string MiddleName { get; set; }
-        public string LastName { get; set; }
+       
         public string Gender { get; set; }
-
-        public string Email { get; set; }
-
-        public string Phone { get; set; }
+        public TalentContactDetail ContactDetails { get; set; }
         public string MobilePhone { get; set; }
         public bool IsMobilePhoneVerified { get; set; }
 
@@ -43,4 +38,14 @@ namespace Talent.Services.Profile.Models.Profile
         public List<AddCertificationViewModel> Certifications { get; set; }
         public List<ExperienceViewModel> Experience { get; set; }
     }
+
+    public class TalentContactDetail
+    {
+        public string FirstName { get; set; }
+        public string MiddleName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+    }
+
 }

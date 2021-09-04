@@ -16,7 +16,8 @@ export default class SocialMediaLinkedAccount extends React.Component {
 
         this.state = {
             showEditSection: false,
-            newContact: details
+            newContact: details,
+            error:false
         }
 
         this.openEdit = this.openEdit.bind(this)
@@ -25,6 +26,7 @@ export default class SocialMediaLinkedAccount extends React.Component {
         this.saveContact = this.saveContact.bind(this)
         this.renderEdit = this.renderEdit.bind(this)
         this.renderDisplay = this.renderDisplay.bind(this)
+        this.errorClass = this.errorClass.bind(this)
     }
 
     componentDidMount() {
@@ -34,12 +36,12 @@ export default class SocialMediaLinkedAccount extends React.Component {
 
     openEdit() {
         const details = this.props.linkedAccounts ?
-        Object.assign({}, this.props.linkedAccounts)
-        : {
-            linkedIn: "",
-            github: "",
-        }
-        
+            Object.assign({}, this.props.linkedAccounts)
+            : {
+                linkedIn: "",
+                github: "",
+            }
+
         this.setState({
             showEditSection: true,
             newContact: details
@@ -60,10 +62,33 @@ export default class SocialMediaLinkedAccount extends React.Component {
         })
     }
 
+    errorClass(field, value) {
+        if (field === 'linkedin') {
+            if (/(ftp|http|https):\/\/?(?:www\.)?linkedin.com(\w+:{0,1}\w*@)?(\S+)(:([0-9])+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/.test(value)) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+        else if((field === 'github')) {
+            if (/((https?):\/\/)?(www.)?[a-z0-9-]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#-]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/.test(value)) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+        else{
+            return false;
+        }
+
+    };
+
     saveContact() {
-        const data = Object.assign({}, this.state.newContact)
-        this.props.controlFunc(this.props.componentId, data)
-        this.closeEdit()
+            const data = Object.assign({}, this.state.newContact)
+            this.props.controlFunc(this.props.componentId, data)
+            this.closeEdit()
     }
 
     render() {
@@ -85,6 +110,7 @@ export default class SocialMediaLinkedAccount extends React.Component {
                     maxLength={80}
                     placeholder="Enter your LinkedIn Url"
                     errorMessage="Please enter a valid LinkedIn Url"
+                  //  isError={this.errorClass('linkedin',this.state.newContact.linkedIn)}
                 />
                 <ChildSingleInput
                     inputType="text"
@@ -95,6 +121,7 @@ export default class SocialMediaLinkedAccount extends React.Component {
                     maxLength={80}
                     placeholder="Enter your GitHub Url"
                     errorMessage="Please enter a valid GitHub Url"
+                  //  isError={this.errorClass('github',this.state.newContact.github)}
                 />
 
                 <button type="button" className="ui teal button" onClick={this.saveContact}>Save</button>
@@ -107,16 +134,16 @@ export default class SocialMediaLinkedAccount extends React.Component {
 
         return (
             <React.Fragment>
-                 <div className='row'>
-                <div className="ui sixteen wide column">
-                    <Button color='linkedin'>
-                        <Icon name='linkedin' /> LinkedIn
-                    </Button>
-                    <Button color='black' className="margin_left_20px">
-                        <Icon name='github' /> GitHub
-                    </Button>
-                    <button type="button" className="ui right floated teal button" onClick={this.openEdit}>Edit</button>
-                </div>
+                <div className='row'>
+                    <div className="ui sixteen wide column">
+                        <Button color='linkedin'>
+                            <Icon name='linkedin' /> LinkedIn
+                        </Button>
+                        <Button color='black' className="margin_left_20px">
+                            <Icon name='github' /> GitHub
+                        </Button>
+                        <button type="button" className="ui right floated teal button" onClick={this.openEdit}>Edit</button>
+                    </div>
                 </div>
             </React.Fragment>
         )
