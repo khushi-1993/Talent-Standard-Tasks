@@ -1,138 +1,193 @@
-﻿/* Photo upload section */
+﻿// /* Photo upload section */
 import React, { Component } from 'react';
 import Cookies from 'js-cookie';
+import { Grid,Image,Label } from 'semantic-ui-react';
+import axios from 'axios';
 
 export default class PhotoUpload extends Component {
 
     constructor(props) {
         super(props);
-        const imageFile = props.imageFile;
-        const imageURL = props.imageURL;
-        this.state = ({
-            imageFile: imageFile,
-            imageURL: imageURL,
-            edited: false
-        });
-
-        this.handleImageChange = this.handleImageChange.bind(this);
-        this.renderPhoto = this.renderPhoto.bind(this);
-        this.renderImage = this.renderImage.bind(this);
-        this.renderNoImage = this.renderNoImage.bind(this);
-        this.renderUploadButton = this.renderUploadButton.bind(this);
-        this.uploadPhoto = this.uploadPhoto.bind(this);
-        this.updateDisplayedPhoto = this.updateDisplayedPhoto.bind(this);
-       
-    };
 
 
-    handleImageChange(event) {
-        if (event.target.files && event.target.files[0]) {
-            this.setState({
-                imageURL: URL.createObjectURL(event.target.files[0]),
-                imageFile: event.target.files[0],
-                edited: true
-            });
+        const {profilePhoto,profilePhotoUrl} = props;
+
+        const defaultImageSrc = '../../../../images/camera.png';
+
+        this.state = {
+            showEditSection: false,
+            imageFile: null,
+            imageSrc: defaultImageSrc
         }
-    }
 
-    renderPhoto() {
-        return (this.state.imageURL ? this.state.imageURL : this.props.imageURL) ? this.renderImage() : this.renderNoImage();
+        this.openEdit = this.openEdit.bind(this)
+        this.closeEdit = this.closeEdit.bind(this)
     }
-
-    renderImage() {
-        return (
-            <label htmlFor="profilePhoto" className="ui image">
-                <img src={this.state.imageURL ? this.state.imageURL : this.props.imageURL} className="ui medium circular image pointer" />
-            </label>
-        );
-    }
-
-    renderNoImage() {
-        return (
-            <label htmlFor="profilePhoto" className="ui icon">
-                <i className="camera retro circular huge icon pointer"></i>
-            </label>
-        );
-    }
-
-    renderUploadButton() {
-        return (
-            <div className='ui row'>
-                <div className="ui sixteen wide column">
-                    <button className="ui upload teal button" onClick={this.updateDisplayedPhoto}>
-                        <i aria-hidden="true" className="upload icon"></i>
-                        Upload
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    updateDisplayedPhoto(event) {
-        event.preventDefault();
+          
+    openEdit () {
         this.setState({
-            edited: false
-        });
-        this.uploadPhoto(event);
+            showEditSection: true
+        })
     }
 
-    uploadPhoto(event) {
-        event.preventDefault();
-
-        var data = new FormData();
-        data.append('ProfilePhoto', this.state.imageFile);
-        data.append('ProfilePhotoUrl', this.state.imageURL);
-
-        var cookies = Cookies.get('talentAuthToken');
-
-        $.ajax({
-            url: this.props.savePhotoUrl,
-            headers: {
-                'Authorization': 'Bearer ' + cookies,
-                'Content-Type': 'application/json'
-            },
-            type: "POST",
-            data: data,
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                if (res.success == true) {
-                    TalentUtil.notification.show("Profile photo uploaded sucessfully", "success", null, null)
-                } else {
-                    TalentUtil.notification.show("Profile did not upload successfully", "error", null, null)
-                }
-
-                this.setState({
-                    edited: false
-                });
-
-            }.bind(this),
-            error: function (res, a, b) {
-                console.log(res)
-                console.log(a)
-                console.log(b)
-            }
+    closeEdit() {
+        this.setState({
+            showEditSection: false
         })
     }
 
     render() {
+
+        const formData = new FormData();
+
+        const showPreview = e => {
+            if (!e.target.files || !e.target.files[0]) 
+            {
+                this.setState({
+                    showEditSection: false
+                })
+                return;
+            } 
+            let imageFile = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = x => {
+                this.setState({
+                    showEditSection: true,
+                    imageFile,
+                    imageSrc: x.target.result
+                })  
+            }
+            reader.readAsDataURL(imageFile);
+    
+        }
+
+        const uploadPhoto = () => {
+            formData.append('talentPhoto',this.state.imageFile);
+
+            console.log("uploadPhoto",formData.entries().next().value);
+            var cookies = Cookies.get('talentAuthToken');
+
+            const config = {
+                headers: {
+                'content-type': 'multipart/form-data',
+                'Authorization': 'Bearer ' + cookies,
+                'Content-Type': 'application/json'
+                },
+            }       
+            
+            // $.ajax({
+            //     url: this.props.savePhotoUrl,
+            //     headers: config,
+            //     type: "POST",
+            //     data: formData,
+            //     success: function (res) {
+            //         console.log(res)
+            //         if (res.success == true) {
+            //             let data = {};
+            //                 data["profilePhoto"] = res.data.profilePhoto.profilePhoto;
+            //                 data["profilePhotoUrl"] = res.data.profilePhoto.profilePhotoUrl;
+            //                 this.props.updateProfileData(data)   
+            //             TalentUtil.notification.show("Profile updated sucessfully", "success", null, null)
+            //         } else {
+            //             TalentUtil.notification.show("Profile did not update successfully", "error", null, null)
+            //         }
+    
+            //     }.bind(this),
+            //     error: function (res, a, b) {
+            //         console.log(res)
+            //         console.log(a)
+            //         console.log(b)
+            //     }
+            // })
+
+            axios.post(this.props.savePhotoUrl,formData,config)
+            .then((res) => {
+                TalentUtil.notification.show("Photo Uploaded sucessfully", "success", null, null)    
+                console.log("response",res.data);
+                let data = {};
+                data["profilePhoto"] = res.data.profilePhoto.profilePhoto;
+                data["profilePhotoUrl"] = res.data.profilePhoto.profilePhotoUrl;
+                this.props.updateProfileData(data)        
+            })
+            .catch((err) => {
+                TalentUtil.notification.show("Photo Not Uploaded", "error", null, null)
+            });    
+            this.closeEdit()
+        }
+            
         return (
-            <div className="ui grid">
-                <div className='ui row'>
-                    <div className="ui sixteen wide column">
-                        {this.renderPhoto()}
+            
+        this.state.showEditSection ? 
+        (
+            
+        <div className='ui sixteen wide column'>
+            <Grid columns='equal'>
+                <Grid.Row>
+                    <Grid.Column>
+                        <h3>Profile Photo</h3>                    
+                    </Grid.Column>
+                    <Grid.Column>
+                            <Image
+                                size='small'
+                                src={this.state.imageSrc}
+                                circular
+                            ></Image>
+                    </Grid.Column>
+                </Grid.Row>
+                <Grid.Row>
+                    <Grid.Column>
+                    </Grid.Column>
+                    <Grid.Column>
+                        <button type="button"  className="ui teal button" onClick={uploadPhoto}><i className="ui upload icon"></i>Upload</button>
+                        <button type="button" className="ui button" onClick={this.closeEdit}>Cancel</button> 
+                    </Grid.Column>
+                </Grid.Row>
+            </Grid>
+        </div>
+        )
+        : 
+        (    
+        <div className='ui sixteen wide column'>
+            <Grid columns='equal'>
+                <Grid.Row>
+                    <Grid.Column>
+                        <h3>Profile Photo</h3>                    
+                    </Grid.Column>
+                    <Grid.Column>
+                        <div 
+                            onClick={() => {
+                            this.upload.click();
+                            }}
+                        >
+                            <Image
+                                size='small'
+                                src={this.props.profilePhotoUrl ? this.props.profilePhotoUrl : this.state.imageSrc}
+                                circular
+                            ></Image>   
+                        </div>
                         <input
-                            type="file"
-                            name="file"
-                            id="profilePhoto"
-                            accept="image/*"
-                            style={{ display: "none" }}
-                            onChange={this.handleImageChange}
+                            id='myInput'
+                            type='file'
+                            name='file'
+                            ref={(ref) => (this.upload = ref)}
+                            style={{ display: "none" }}  
+                            onChange={showPreview}                  
                         />
-                    </div>
-                </div>
-                {this.state.edited ? this.renderUploadButton() : null}
-            </div>
-        );
+                    </Grid.Column>
+                </Grid.Row>
+                <Grid.Row>
+                    <Grid.Column>
+                    </Grid.Column>
+                    <Grid.Column>
+                        { this.state.showEditSection ?    
+                            (<button type="button"  className="ui teal button" ><i className="ui upload icon"></i>Upload</button>) : 
+                            (<Label pointing>click on Photo To Change</Label>)
+                        }
+                    </Grid.Column>
+                </Grid.Row>
+            </Grid>
+        </div>
+        )
+        )    
     }
 }

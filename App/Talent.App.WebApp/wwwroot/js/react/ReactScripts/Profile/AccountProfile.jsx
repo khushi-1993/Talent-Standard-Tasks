@@ -276,9 +276,8 @@ export default class AccountProfile extends React.Component {
                                             hideSegment={true}
                                         >
                                             <PhotoUpload
-                                                //imageId={this.state.profileData.profilePhoto}
-                                                imageURL={this.state.profileData.profilePhotoUrl}
-                                                imageName={this.state.profileData.profilePhoto}
+                                                 profilePhotoUrl={this.state.profileData.profilePhotoUrl}
+                                                 profilePhoto={this.state.profileData.profilePhoto}
                                                 updateProfileData={this.updateWithoutSave}
                                                 savePhotoUrl='http://localhost:60290/profile/profile/updateProfilePhoto'
                                                // savePhotoUrl='http://localhost:60290/profile/profile/updateProfilePhoto'
