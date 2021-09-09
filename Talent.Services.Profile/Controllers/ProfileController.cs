@@ -238,21 +238,43 @@ namespace Talent.Services.Profile.Controllers
             return Json(new { profilePath = profileUrl });
         }
 
+        //[HttpPost("updateProfilePhoto")]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "talent")]
+        //public async Task<ActionResult> UpdateProfilePhoto()
+        //{
+        //    IFormFile file = Request.Form.Files[0];
+        //    var userId = _userAppContext.CurrentUserId;
+
+
+        //    if (file != null)
+        //    {
+        //        var talentResult = await _profileService.UpdateTalentPhoto(userId, file);
+        //        return Json(new { Success = true, talent = talentResult });
+        //    }
+
+        //    return Json(new { Success = false });
+        //}
+
         [HttpPost("updateProfilePhoto")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "talent")]
-        public async Task<ActionResult> UpdateProfilePhoto()
+        public async Task<IActionResult> UpdateProfilePhoto([FromForm] IFormFile talentPhoto)
         {
-            IFormFile file = Request.Form.Files[0];
-            var userId = _userAppContext.CurrentUserId;
-
-
-            if (file != null)
+            try
             {
-                var talentResult = await _profileService.UpdateTalentPhoto(userId, file);
-                return Json(new { Success = true, talent = talentResult });
-            }
+                if (talentPhoto != null)
+                {
+                    var userProfilePhoto = await _profileService.UpdateTalentPhoto(_userAppContext.CurrentUserId, talentPhoto);
+                return Json(new { Success = true, profilePhoto = userProfilePhoto });
+                }
 
-            return Json(new { Success = false });
+                return Json(new { Success = false });
+            }
+            catch
+            {
+                return Json(new { Success = false, Message = "Error while updating user photo" });
+            }
+            //Your code here;
+            //throw new NotImplementedException();
         }
 
         [HttpPost("updateTalentCV")]

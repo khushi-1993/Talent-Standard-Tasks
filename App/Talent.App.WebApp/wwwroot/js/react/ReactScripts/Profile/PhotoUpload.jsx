@@ -88,7 +88,8 @@ export default class PhotoUpload extends Component {
         $.ajax({
             url: this.props.savePhotoUrl,
             headers: {
-                'Authorization': 'Bearer ' + cookies
+                'Authorization': 'Bearer ' + cookies,
+                'Content-Type': 'application/json'
             },
             type: "POST",
             data: data,

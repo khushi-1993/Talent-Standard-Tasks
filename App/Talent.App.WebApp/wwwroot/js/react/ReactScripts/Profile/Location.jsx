@@ -226,7 +226,7 @@ export class Nationality extends React.Component {
                 <div className="ui four wide column">
                     <select className="ui right labeled dropdown"
                         placeholder="Nationality"
-                        value={this.props.nationalityData}
+                        value={this.props.nationalityData ? this.props.nationalityData : ""}
                         onChange={this.handledropdownChange}
                         name="nationality">
                         <option value="">Select your nationality</option>

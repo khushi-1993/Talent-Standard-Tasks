@@ -31,7 +31,7 @@ export default class TalentStatus extends React.Component {
                     label={x.title}
                     name='checkboxRadioGroup'
                     value={x.value}
-                    checked={(this.state.jobSeekingStatus.status ? this.state.jobSeekingStatus.status  : this.props.status.status )=== x.value}
+                    checked={(this.state.jobSeekingStatus.status ? this.state.jobSeekingStatus.status  : (this.props.status ? this.props.status.status :"") )=== x.value}
                     onChange={this.handleChange}
                 />
             </Form.Field>

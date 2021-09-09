@@ -9,8 +9,8 @@ export default class VisaStatus extends React.Component {
     constructor(props) {
         super(props)
 
-        const visaStatus = props.visaStatus;
-        const visaExpiryDate = props.visaExpiryDate;
+        const visaStatus = props.visaStatus ? props.visaStatus :"";
+        const visaExpiryDate = props.visaExpiryDate ? props.visaExpiryDate : "";
 
         const visaOption = [
             {
@@ -71,7 +71,7 @@ export default class VisaStatus extends React.Component {
                                 <label>Visa Type</label>
                                 <Select
                                     name='visaStatus'
-                                    options={this.state.visaOption}
+                                    options={this.state.visaOption != null ? this.state.visaOption : ""}
                                     controlFunc={this.handleChange}
                                     placeholder="Enter Your Visa Status"
                                     errorMessage="Please enter a valid Visa Status"

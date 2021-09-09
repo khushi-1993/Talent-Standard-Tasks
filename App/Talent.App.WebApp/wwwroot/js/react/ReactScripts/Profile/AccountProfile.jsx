@@ -281,6 +281,7 @@ export default class AccountProfile extends React.Component {
                                                 imageName={this.state.profileData.profilePhoto}
                                                 updateProfileData={this.updateWithoutSave}
                                                 savePhotoUrl='http://localhost:60290/profile/profile/updateProfilePhoto'
+                                               // savePhotoUrl='http://localhost:60290/profile/profile/updateProfilePhoto'
                                             />
                                         </FormItemWrapper>
                                         <FormItemWrapper
